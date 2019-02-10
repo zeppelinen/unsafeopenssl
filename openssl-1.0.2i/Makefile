@@ -271,7 +271,7 @@ BUILD_ONE_CMD=\
 	fi
 
 reflect:
-	@[ -n "$(THIS)" ] && $(CLEARENV) && $(MAKE) $(THIS) -e $(BUILDENV)
+	[ -n "$(THIS)" ] && $(CLEARENV) && $(MAKE) $(THIS) -e $(BUILDENV)
 
 sub_all: build_all
 
@@ -283,21 +283,21 @@ build_libcrypto: build_crypto build_engines libcrypto.pc
 build_libssl: build_ssl libssl.pc
 
 build_crypto:
-	@dir=crypto; target=all; $(BUILD_ONE_CMD)
+	dir=crypto; target=all; $(BUILD_ONE_CMD)
 build_ssl: build_crypto
-	@dir=ssl; target=all; $(BUILD_ONE_CMD)
+	dir=ssl; target=all; $(BUILD_ONE_CMD)
 build_engines: build_crypto
-	@dir=engines; target=all; $(BUILD_ONE_CMD)
+	dir=engines; target=all; $(BUILD_ONE_CMD)
 build_apps: build_libs
-	@dir=apps; target=all; $(BUILD_ONE_CMD)
+	dir=apps; target=all; $(BUILD_ONE_CMD)
 build_tests: build_libs
-	@dir=test; target=all; $(BUILD_ONE_CMD)
+	dir=test; target=all; $(BUILD_ONE_CMD)
 build_tools: build_libs
-	@dir=tools; target=all; $(BUILD_ONE_CMD)
+	dir=tools; target=all; $(BUILD_ONE_CMD)
 
 all_testapps: build_libs build_testapps
 build_testapps:
-	@dir=crypto; target=testapps; $(BUILD_ONE_CMD)
+	dir=crypto; target=testapps; $(BUILD_ONE_CMD)
 
 fips_premain_dso$(EXE_EXT): libcrypto.a
 	[ -z "$(FIPSCANLIB)" ] || $(CC) $(CFLAG) -Iinclude \
@@ -306,7 +306,7 @@ fips_premain_dso$(EXE_EXT): libcrypto.a
 		libcrypto.a $(EX_LIBS)
 
 libcrypto$(SHLIB_EXT): libcrypto.a fips_premain_dso$(EXE_EXT)
-	@if [ "$(SHLIB_TARGET)" != "" ]; then \
+	if [ "$(SHLIB_TARGET)" != "" ]; then \
 		if [ "$(FIPSCANLIB)" = "libcrypto" ]; then \
 			FIPSLD_LIBCRYPTO=libcrypto.a ; \
 			FIPSLD_CC="$(CC)"; CC=$(FIPSDIR)/bin/fipsld; \
@@ -320,7 +320,7 @@ libcrypto$(SHLIB_EXT): libcrypto.a fips_premain_dso$(EXE_EXT)
 	fi
 
 libssl$(SHLIB_EXT): libcrypto$(SHLIB_EXT) libssl.a
-	@if [ "$(SHLIB_TARGET)" != "" ]; then \
+	if [ "$(SHLIB_TARGET)" != "" ]; then \
 		$(MAKE) SHLIBDIRS=ssl SHLIBDEPS='-lcrypto' build-shared; \
 	else \
 		echo "There's no support for shared libraries on this platform" >&2; \
@@ -328,7 +328,7 @@ libssl$(SHLIB_EXT): libcrypto$(SHLIB_EXT) libssl.a
 	fi
 
 clean-shared:
-	@set -e; for i in $(SHLIBDIRS); do \
+	set -e; for i in $(SHLIBDIRS); do \
 		if [ -n "$(SHARED_LIBS_LINK_EXTS)" ]; then \
 			tmp="$(SHARED_LIBS_LINK_EXTS)"; \
 			for j in $${tmp:-x}; do \
@@ -342,7 +342,7 @@ clean-shared:
 	done
 
 link-shared:
-	@ set -e; for i in $(SHLIBDIRS); do \
+	set -e; for i in $(SHLIBDIRS); do \
 		$(MAKE) -f $(HERE)/Makefile.shared -e $(BUILDENV) \
 			LIBNAME=$$i LIBVERSION=$(SHLIB_MAJOR).$(SHLIB_MINOR) \
 			LIBCOMPATVERSIONS=";$(SHLIB_VERSION_HISTORY)" \
@@ -353,7 +353,7 @@ link-shared:
 build-shared: do_$(SHLIB_TARGET) link-shared
 
 do_$(SHLIB_TARGET):
-	@ set -e; libs='-L. $(SHLIBDEPS)'; for i in $(SHLIBDIRS); do \
+	set -e; libs='-L. $(SHLIBDEPS)'; for i in $(SHLIBDIRS); do \
 		if [ "$$i" = "ssl" -a -n "$(LIBKRB5)" ]; then \
 			libs="$(LIBKRB5) $$libs"; \
 		fi; \
@@ -366,7 +366,7 @@ do_$(SHLIB_TARGET):
 	done
 
 libcrypto.pc: Makefile
-	@ ( echo 'prefix=$(INSTALLTOP)'; \
+	( echo 'prefix=$(INSTALLTOP)'; \
 	    echo 'exec_prefix=$${prefix}'; \
 	    echo 'libdir=$${exec_prefix}/$(LIBDIR)'; \
 	    echo 'includedir=$${prefix}/include'; \
@@ -381,7 +381,7 @@ libcrypto.pc: Makefile
 	    echo 'Cflags: -I$${includedir} $(KRB5_INCLUDES)' ) > libcrypto.pc
 
 libssl.pc: Makefile
-	@ ( echo 'prefix=$(INSTALLTOP)'; \
+	( echo 'prefix=$(INSTALLTOP)'; \
 	    echo 'exec_prefix=$${prefix}'; \
 	    echo 'libdir=$${exec_prefix}/$(LIBDIR)'; \
 	    echo 'includedir=$${prefix}/include'; \
@@ -395,7 +395,7 @@ libssl.pc: Makefile
 	    echo 'Cflags: -I$${includedir} $(KRB5_INCLUDES)' ) > libssl.pc
 
 openssl.pc: Makefile
-	@ ( echo 'prefix=$(INSTALLTOP)'; \
+	( echo 'prefix=$(INSTALLTOP)'; \
 	    echo 'exec_prefix=$${prefix}'; \
 	    echo 'libdir=$${exec_prefix}/$(LIBDIR)'; \
 	    echo 'includedir=$${prefix}/include'; \
@@ -406,21 +406,21 @@ openssl.pc: Makefile
 	    echo 'Requires: libssl libcrypto' ) > openssl.pc
 
 Makefile: Makefile.org Configure config
-	@echo "Makefile is older than Makefile.org, Configure or config."
-	@echo "Reconfigure the source tree (via './config' or 'perl Configure'), please."
-	@false
+	echo "Makefile is older than Makefile.org, Configure or config."
+	echo "Reconfigure the source tree (via './config' or 'perl Configure'), please."
+	false
 
 libclean:
 	rm -f *.map *.so *.so.* *.dylib *.dll engines/*.so engines/*.dll engines/*.dylib *.a engines/*.a */lib */*/lib
 
 clean:	libclean
 	rm -f shlib/*.o *.o core a.out fluff rehash.time testlog make.log cctest cctest.c
-	@set -e; target=clean; $(RECURSIVE_BUILD_CMD)
+	set -e; target=clean; $(RECURSIVE_BUILD_CMD)
 	rm -f $(LIBS)
 	rm -f openssl.pc libssl.pc libcrypto.pc
 	rm -f speed.* .pure
 	rm -f $(TARFILE)
-	@set -e; for i in $(ONEDIRS) ;\
+	set -e; for i in $(ONEDIRS) ;\
 	do \
 	rm -fr $$i/*; \
 	done
@@ -431,24 +431,24 @@ makefile.one: files
 
 files:
 	$(PERL) $(TOP)/util/files.pl Makefile > $(TOP)/MINFO
-	@set -e; target=files; $(RECURSIVE_BUILD_CMD)
+	set -e; target=files; $(RECURSIVE_BUILD_CMD)
 
 links:
-	@$(PERL) $(TOP)/util/mkdir-p.pl include/openssl
-	@$(PERL) $(TOP)/util/mklink.pl include/openssl $(EXHEADER)
-	@set -e; target=links; $(RECURSIVE_BUILD_CMD)
+	$(PERL) $(TOP)/util/mkdir-p.pl include/openssl
+	$(PERL) $(TOP)/util/mklink.pl include/openssl $(EXHEADER)
+	set -e; target=links; $(RECURSIVE_BUILD_CMD)
 
 gentests:
-	@(cd test && echo "generating dummy tests (if needed)..." && \
+	(cd test && echo "generating dummy tests (if needed)..." && \
 	$(CLEARENV) && $(MAKE) -e $(BUILDENV) TESTS='$(TESTS)' OPENSSL_DEBUG_MEMORY=on generate );
 
 dclean:
 	rm -rf *.bak include/openssl certs/.0
-	@set -e; target=dclean; $(RECURSIVE_BUILD_CMD)
+	set -e; target=dclean; $(RECURSIVE_BUILD_CMD)
 
 rehash: rehash.time
 rehash.time: certs apps
-	@if [ -z "$(CROSS_COMPILE)" ]; then \
+	if [ -z "$(CROSS_COMPILE)" ]; then \
 		(OPENSSL="`pwd`/util/opensslwrap.sh"; \
 		[ -x "apps/openssl.exe" ] && OPENSSL="apps/openssl.exe" || :; \
 		OPENSSL_DEBUG_MEMORY=on; \
@@ -460,21 +460,21 @@ rehash.time: certs apps
 test:   tests
 
 tests: rehash
-	@(cd test && echo "testing..." && \
+	(cd test && echo "testing..." && \
 	$(CLEARENV) && $(MAKE) -e $(BUILDENV) TOP=.. TESTS='$(TESTS)' OPENSSL_DEBUG_MEMORY=on OPENSSL_CONF=../apps/openssl.cnf tests );
 	OPENSSL_CONF=apps/openssl.cnf util/opensslwrap.sh version -a
 
 report:
-	@$(PERL) util/selftest.pl
+	$(PERL) util/selftest.pl
 
 update: errors stacks util/libeay.num util/ssleay.num TABLE
-	@set -e; target=update; $(RECURSIVE_BUILD_CMD)
+	set -e; target=update; $(RECURSIVE_BUILD_CMD)
 
 depend:
-	@set -e; target=depend; $(RECURSIVE_BUILD_CMD)
+	set -e; target=depend; $(RECURSIVE_BUILD_CMD)
 
 lint:
-	@set -e; target=lint; $(RECURSIVE_BUILD_CMD)
+	set -e; target=lint; $(RECURSIVE_BUILD_CMD)
 
 tags:
 	rm -f TAGS
@@ -530,13 +530,13 @@ tar-snap: $(TARFILE).list
 
 dist:   
 	$(PERL) Configure dist
-	@$(MAKE) SDIRS='$(SDIRS)' clean
-	@$(MAKE) TAR='$(TAR)' TARFLAGS='$(TARFLAGS)' $(DISTTARVARS) tar
+	$(MAKE) SDIRS='$(SDIRS)' clean
+	$(MAKE) TAR='$(TAR)' TARFLAGS='$(TARFLAGS)' $(DISTTARVARS) tar
 
 install: all install_docs install_sw
 
 install_sw:
-	@$(PERL) $(TOP)/util/mkdir-p.pl $(INSTALL_PREFIX)$(INSTALLTOP)/bin \
+	$(PERL) $(TOP)/util/mkdir-p.pl $(INSTALL_PREFIX)$(INSTALLTOP)/bin \
 		$(INSTALL_PREFIX)$(INSTALLTOP)/$(LIBDIR) \
 		$(INSTALL_PREFIX)$(INSTALLTOP)/$(LIBDIR)/engines \
 		$(INSTALL_PREFIX)$(INSTALLTOP)/$(LIBDIR)/pkgconfig \
@@ -544,13 +544,13 @@ install_sw:
 		$(INSTALL_PREFIX)$(OPENSSLDIR)/misc \
 		$(INSTALL_PREFIX)$(OPENSSLDIR)/certs \
 		$(INSTALL_PREFIX)$(OPENSSLDIR)/private
-	@set -e; headerlist="$(EXHEADER)"; for i in $$headerlist;\
+	set -e; headerlist="$(EXHEADER)"; for i in $$headerlist;\
 	do \
 	(cp $$i $(INSTALL_PREFIX)$(INSTALLTOP)/include/openssl/$$i; \
 	chmod 644 $(INSTALL_PREFIX)$(INSTALLTOP)/include/openssl/$$i ); \
 	done;
-	@set -e; target=install; $(RECURSIVE_BUILD_CMD)
-	@set -e; liblist="$(LIBS)"; for i in $$liblist ;\
+	set -e; target=install; $(RECURSIVE_BUILD_CMD)
+	set -e; liblist="$(LIBS)"; for i in $$liblist ;\
 	do \
 		if [ -f "$$i" ]; then \
 		(       echo installing $$i; \
@@ -560,7 +560,7 @@ install_sw:
 			mv -f $(INSTALL_PREFIX)$(INSTALLTOP)/$(LIBDIR)/$$i.new $(INSTALL_PREFIX)$(INSTALLTOP)/$(LIBDIR)/$$i ); \
 		fi; \
 	done;
-	@set -e; if [ -n "$(SHARED_LIBS)" ]; then \
+	set -e; if [ -n "$(SHARED_LIBS)" ]; then \
 		tmp="$(SHARED_LIBS)"; \
 		for i in $${tmp:-x}; \
 		do \
@@ -634,12 +634,12 @@ install_html_docs:
 	done
 
 install_docs:
-	@$(PERL) $(TOP)/util/mkdir-p.pl \
+	$(PERL) $(TOP)/util/mkdir-p.pl \
 		$(INSTALL_PREFIX)$(MANDIR)/man1 \
 		$(INSTALL_PREFIX)$(MANDIR)/man3 \
 		$(INSTALL_PREFIX)$(MANDIR)/man5 \
 		$(INSTALL_PREFIX)$(MANDIR)/man7
-	@pod2man="`cd ./util; ./pod2mantest $(PERL)`"; \
+	pod2man="`cd ./util; ./pod2mantest $(PERL)`"; \
 	here="`pwd`"; \
 	filecase=; \
 	case "$(PLATFORM)" in DJGPP|Cygwin*|mingw*|darwin*-*-cc) \
