@@ -165,11 +165,11 @@ link_app.:
 	$(LINK_APP)
 
 link_o.gnu:
-	@ $(DO_GNU_SO); $(LINK_SO_O)
+	$(DO_GNU_SO); $(LINK_SO_O)
 link_a.gnu:
-	@ $(DO_GNU_SO); $(LINK_SO_A)
+	$(DO_GNU_SO); $(LINK_SO_A)
 link_app.gnu:
-	@ $(DO_GNU_APP); $(LINK_APP)
+	$(DO_GNU_APP); $(LINK_APP)
 
 DO_BEOS_SO=	SHLIB=lib$(LIBNAME).so; \
 	SHLIB_SUFFIX=; \
@@ -178,12 +178,12 @@ DO_BEOS_SO=	SHLIB=lib$(LIBNAME).so; \
 	SHAREDFLAGS="$(CFLAGS) $(SHARED_LDFLAGS) -shared -Wl,-Bsymbolic -Wl,-soname=$$SHLIB$$SHLIB_SUFFIX"
 
 link_o.beos:
-	@ $(DO_BEOS_SO); $(LINK_SO_O)
+	$(DO_BEOS_SO); $(LINK_SO_O)
 link_a.beos:
-	@ $(DO_BEOS_SO); $(LINK_SO_A)
+	$(DO_BEOS_SO); $(LINK_SO_A)
 
 link_o.bsd:
-	@if $(DETECT_GNU_LD); then $(DO_GNU_SO); else \
+	if $(DETECT_GNU_LD); then $(DO_GNU_SO); else \
 	$(CALC_VERSIONS); \
 	SHLIB=lib$(LIBNAME).so; \
 	SHLIB_SUFFIX=; \
@@ -193,7 +193,7 @@ link_o.bsd:
 	SHAREDFLAGS="$(CFLAGS) $(SHARED_LDFLAGS) -shared -nostdlib"; \
 	fi; $(LINK_SO_O)
 link_a.bsd:
-	@if $(DETECT_GNU_LD); then $(DO_GNU_SO); else \
+	if $(DETECT_GNU_LD); then $(DO_GNU_SO); else \
 	$(CALC_VERSIONS); \
 	SHLIB=lib$(LIBNAME).so; \
 	SHLIB_SUFFIX=; \
@@ -203,7 +203,7 @@ link_a.bsd:
 	SHAREDFLAGS="$(CFLAGS) $(SHARED_LDFLAGS) -shared -nostdlib"; \
 	fi; $(LINK_SO_A)
 link_app.bsd:
-	@if $(DETECT_GNU_LD); then $(DO_GNU_APP); else \
+	if $(DETECT_GNU_LD); then $(DO_GNU_APP); else \
 	LDFLAGS="$(CFLAGS) -Wl,-rpath,$(LIBPATH)"; \
 	fi; $(LINK_APP)
 
@@ -225,7 +225,7 @@ link_app.bsd:
 # Alternative to this heuristic approach is to develop specific
 # MacOS X dso module relying on whichever "native" dyld interface.
 link_o.darwin:
-	@ $(CALC_VERSIONS); \
+	$(CALC_VERSIONS); \
 	SHLIB=lib$(LIBNAME); \
 	SHLIB_SUFFIX=.dylib; \
 	ALLSYMSFLAGS='-all_load'; \
@@ -239,7 +239,7 @@ link_o.darwin:
 	fi; \
 	$(LINK_SO_O)
 link_a.darwin:
-	@ $(CALC_VERSIONS); \
+	$(CALC_VERSIONS); \
 	SHLIB=lib$(LIBNAME); \
 	SHLIB_SUFFIX=.dylib; \
 	ALLSYMSFLAGS='-all_load'; \
@@ -257,7 +257,7 @@ link_app.darwin:	# is there run-path on darwin?
 	$(LINK_APP)
 
 link_o.cygwin:
-	@ $(CALC_VERSIONS); \
+	$(CALC_VERSIONS); \
 	INHIBIT_SYMLINKS=yes; \
 	SHLIB=cyg$(LIBNAME); \
 	base=-Wl,--enable-auto-image-base; \
@@ -277,7 +277,7 @@ link_o.cygwin:
 	$(LINK_SO_O)
 #for mingw target if def-file is in use dll-name should match library-name
 link_a.cygwin:
-	@ $(CALC_VERSIONS); \
+	$(CALC_VERSIONS); \
 	INHIBIT_SYMLINKS=yes; \
 	SHLIB=cyg$(LIBNAME); SHLIB_SOVER=-$(LIBVERSION); SHLIB_SUFFIX=.dll; \
 	dll_name=$$SHLIB$$SHLIB_SOVER$$SHLIB_SUFFIX; extras=; \
@@ -306,14 +306,14 @@ link_a.cygwin:
 	cp -p $$dll_name apps/; \
 	cp -p $$dll_name test/
 link_app.cygwin:
-	@if expr "$(CFLAGS)" : '.*OPENSSL_USE_APPLINK' > /dev/null; then \
+	if expr "$(CFLAGS)" : '.*OPENSSL_USE_APPLINK' > /dev/null; then \
 		LIBDEPS="$(TOP)/crypto/applink.o $${LIBDEPS:-$(LIBDEPS)}"; \
 		export LIBDEPS; \
 	fi; \
 	$(LINK_APP)
 
 link_o.alpha-osf1:
-	@ if $(DETECT_GNU_LD); then \
+	if $(DETECT_GNU_LD); then \
 		$(DO_GNU_SO); \
 	else \
 		SHLIB=lib$(LIBNAME).so; \
@@ -334,7 +334,7 @@ link_o.alpha-osf1:
 	fi; \
 	$(LINK_SO_O)
 link_a.alpha-osf1:
-	@ if $(DETECT_GNU_LD); then \
+	if $(DETECT_GNU_LD); then \
 		$(DO_GNU_SO); \
 	else \
 		SHLIB=lib$(LIBNAME).so; \
@@ -355,7 +355,7 @@ link_a.alpha-osf1:
 	fi; \
 	$(LINK_SO_A)
 link_app.alpha-osf1:
-	@if $(DETECT_GNU_LD); then \
+	if $(DETECT_GNU_LD); then \
 		$(DO_GNU_APP); \
 	else \
 		LDFLAGS="$(CFLAGS) -rpath $(LIBRPATH)"; \
@@ -363,7 +363,7 @@ link_app.alpha-osf1:
 	$(LINK_APP)
 
 link_o.solaris:
-	@ if $(DETECT_GNU_LD); then \
+	if $(DETECT_GNU_LD); then \
 		$(DO_GNU_SO); \
 	else \
 		$(CALC_VERSIONS); \
@@ -377,7 +377,7 @@ link_o.solaris:
 	fi; \
 	$(LINK_SO_O)
 link_a.solaris:
-	@ if $(DETECT_GNU_LD); then \
+	if $(DETECT_GNU_LD); then \
 		$(DO_GNU_SO); \
 	else \
 		$(CALC_VERSIONS); \
@@ -391,7 +391,7 @@ link_a.solaris:
 	fi; \
 	$(LINK_SO_A)
 link_app.solaris:
-	@ if $(DETECT_GNU_LD); then \
+	if $(DETECT_GNU_LD); then \
 		$(DO_GNU_APP); \
 	else \
 		LDFLAGS="$(CFLAGS) -R $(LIBRPATH)"; \
@@ -400,7 +400,7 @@ link_app.solaris:
 
 # OpenServer 5 native compilers used
 link_o.svr3:
-	@ if $(DETECT_GNU_LD); then \
+	if $(DETECT_GNU_LD); then \
 		$(DO_GNU_SO); \
 	else \
 		$(CALC_VERSIONS); \
@@ -412,7 +412,7 @@ link_o.svr3:
 	fi; \
 	$(LINK_SO_O)
 link_a.svr3:
-	@ if $(DETECT_GNU_LD); then \
+	if $(DETECT_GNU_LD); then \
 		$(DO_GNU_SO); \
 	else \
 		$(CALC_VERSIONS); \
@@ -424,12 +424,12 @@ link_a.svr3:
 	fi; \
 	$(LINK_SO_A_UNPACKED)
 link_app.svr3:
-	@$(DETECT_GNU_LD) && $(DO_GNU_APP); \
+	$(DETECT_GNU_LD) && $(DO_GNU_APP); \
 	$(LINK_APP)
 
 # UnixWare 7 and OpenUNIX 8 native compilers used
 link_o.svr5:
-	@ if $(DETECT_GNU_LD); then \
+	if $(DETECT_GNU_LD); then \
 		$(DO_GNU_SO); \
 	else \
 		$(CALC_VERSIONS); \
@@ -443,7 +443,7 @@ link_o.svr5:
 	fi; \
 	$(LINK_SO_O)
 link_a.svr5:
-	@ if $(DETECT_GNU_LD); then \
+	if $(DETECT_GNU_LD); then \
 		$(DO_GNU_SO); \
 	else \
 		$(CALC_VERSIONS); \
@@ -457,11 +457,11 @@ link_a.svr5:
 	fi; \
 	$(LINK_SO_A_UNPACKED)
 link_app.svr5:
-	@$(DETECT_GNU_LD) && $(DO_GNU_APP); \
+	$(DETECT_GNU_LD) && $(DO_GNU_APP); \
 	$(LINK_APP)
 
 link_o.irix:
-	@ if $(DETECT_GNU_LD); then \
+	if $(DETECT_GNU_LD); then \
 		$(DO_GNU_SO); \
 	else \
 		$(CALC_VERSIONS); \
@@ -475,7 +475,7 @@ link_o.irix:
 	fi; \
 	$(LINK_SO_O)
 link_a.irix:
-	@ if $(DETECT_GNU_LD); then \
+	if $(DETECT_GNU_LD); then \
 		$(DO_GNU_SO); \
 	else \
 		$(CALC_VERSIONS); \
@@ -489,7 +489,7 @@ link_a.irix:
 	fi; \
 	$(LINK_SO_A)
 link_app.irix:
-	@LDFLAGS="$(CFLAGS) -Wl,-rpath,$(LIBRPATH)"; \
+	LDFLAGS="$(CFLAGS) -Wl,-rpath,$(LIBRPATH)"; \
 	$(LINK_APP)
 
 # 32-bit PA-RISC HP-UX embeds the -L pathname of libs we link with, so
@@ -501,7 +501,7 @@ link_app.irix:
 # ELFs by the way].
 #
 link_o.hpux:
-	@if $(DETECT_GNU_LD); then $(DO_GNU_SO); else \
+	if $(DETECT_GNU_LD); then $(DO_GNU_SO); else \
 	$(CALC_VERSIONS); \
 	SHLIB=lib$(LIBNAME).sl; \
 	expr "$(CFLAGS)" : '.*DSO_DLFCN' > /dev/null && SHLIB=lib$(LIBNAME).so; \
@@ -514,7 +514,7 @@ link_o.hpux:
 	rm -f $$SHLIB$$SHLIB_SOVER$$SHLIB_SUFFIX || :; \
 	$(LINK_SO_O) && chmod a=rx $$SHLIB$$SHLIB_SOVER$$SHLIB_SUFFIX
 link_a.hpux:
-	@if $(DETECT_GNU_LD); then $(DO_GNU_SO); else \
+	if $(DETECT_GNU_LD); then $(DO_GNU_SO); else \
 	$(CALC_VERSIONS); \
 	SHLIB=lib$(LIBNAME).sl; \
 	expr $(PLATFORM) : '.*ia64' > /dev/null && SHLIB=lib$(LIBNAME).so; \
@@ -527,13 +527,13 @@ link_a.hpux:
 	rm -f $$SHLIB$$SHLIB_SOVER$$SHLIB_SUFFIX || :; \
 	$(LINK_SO_A) && chmod a=rx $$SHLIB$$SHLIB_SOVER$$SHLIB_SUFFIX
 link_app.hpux:
-	@if $(DETECT_GNU_LD); then $(DO_GNU_APP); else \
+	if $(DETECT_GNU_LD); then $(DO_GNU_APP); else \
 	LDFLAGS="$(CFLAGS) -Wl,+s,+cdp,../:,+cdp,./:,+b,$(LIBRPATH)"; \
 	fi; \
 	$(LINK_APP)
 
 link_o.aix:
-	@ $(CALC_VERSIONS); \
+	$(CALC_VERSIONS); \
 	OBJECT_MODE=`expr "x$(SHARED_LDFLAGS)" : 'x\-[a-z]*\(64\)'` || :; \
 	OBJECT_MODE=$${OBJECT_MODE:-32}; export OBJECT_MODE; \
 	SHLIB=lib$(LIBNAME).so; \
@@ -543,7 +543,7 @@ link_o.aix:
 	SHAREDFLAGS='$(CFLAGS) $(SHARED_LDFLAGS) -Wl,-bexpall,-bnolibpath,-bM:SRE'; \
 	$(LINK_SO_O);
 link_a.aix:
-	@ $(CALC_VERSIONS); \
+	$(CALC_VERSIONS); \
 	OBJECT_MODE=`expr "x$(SHARED_LDFLAGS)" : 'x\-[a-z]*\(64\)'` || : ; \
 	OBJECT_MODE=$${OBJECT_MODE:-32}; export OBJECT_MODE; \
 	SHLIB=lib$(LIBNAME).so; \
@@ -557,7 +557,7 @@ link_app.aix:
 	$(LINK_APP)
 
 link_o.reliantunix:
-	@ $(CALC_VERSIONS); \
+	$(CALC_VERSIONS); \
 	SHLIB=lib$(LIBNAME).so; \
 	SHLIB_SUFFIX=; \
 	ALLSYMSFLAGS=; \
@@ -565,7 +565,7 @@ link_o.reliantunix:
 	SHAREDFLAGS='$(CFLAGS) -G'; \
 	$(LINK_SO_O)
 link_a.reliantunix:
-	@ $(CALC_VERSIONS); \
+	$(CALC_VERSIONS); \
 	SHLIB=lib$(LIBNAME).so; \
 	SHLIB_SUFFIX=; \
 	ALLSYMSFLAGS=; \
@@ -578,16 +578,16 @@ link_app.reliantunix:
 # Targets to build symbolic links when needed
 symlink.gnu symlink.solaris symlink.svr3 symlink.svr5 symlink.irix \
 symlink.aix symlink.reliantunix:
-	@ $(CALC_VERSIONS); \
+	$(CALC_VERSIONS); \
 	SHLIB=lib$(LIBNAME).so; \
 	$(SYMLINK_SO)
 symlink.darwin:
-	@ $(CALC_VERSIONS); \
+	$(CALC_VERSIONS); \
 	SHLIB=lib$(LIBNAME); \
 	SHLIB_SUFFIX=.dylib; \
 	$(SYMLINK_SO)
 symlink.hpux:
-	@ $(CALC_VERSIONS); \
+	$(CALC_VERSIONS); \
 	SHLIB=lib$(LIBNAME).sl; \
 	expr $(PLATFORM) : '.*ia64' > /dev/null && SHLIB=lib$(LIBNAME).so; \
 	$(SYMLINK_SO)
