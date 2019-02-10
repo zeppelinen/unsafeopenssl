@@ -1,0 +1,11 @@
+--- openssl/Makefile.org
++++ openssl/Makefile.org
+@@ -295,7 +295,7 @@ fips_premain_dso$(EXE_EXT): libcrypto.a
+ 		$(FIPSLIBDIR)fips_premain.c $(FIPSLIBDIR)fipscanister.o \
+ 		libcrypto.a $(EX_LIBS)
+ 
+-libcrypto$(SHLIB_EXT): libcrypto.a fips_premain_dso$(EXE_EXT)
++libcrypto$(SHLIB_EXT): libcrypto.a $(FIPS_PREMAIN_DSO)
+ 	@if [ "$(SHLIB_TARGET)" != "" ]; then \
+ 		if [ "$(FIPSCANLIB)" = "libcrypto" ]; then \
+ 			FIPSLD_LIBCRYPTO=libcrypto.a ; \

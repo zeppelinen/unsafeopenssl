@@ -1,0 +1,271 @@
+--- openssl/crypto/armcap.c
++++ openssl/crypto/armcap.c
+@@ -1,3 +1,6 @@
++/* for secure_getenv */
++#define _GNU_SOURCE
++
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+@@ -95,7 +98,7 @@ void OPENSSL_cpuid_setup(void)
+         return;
+     trigger = 1;
+ 
+-    if ((e = getenv("OPENSSL_armcap"))) {
++    if ((e = secure_getenv("OPENSSL_armcap"))) {
+         OPENSSL_armcap_P = (unsigned int)strtoul(e, NULL, 0);
+         return;
+     }
+--- openssl/crypto/conf/conf_api.c
++++ openssl/crypto/conf/conf_api.c
+@@ -63,6 +63,8 @@
+ # define NDEBUG
+ #endif
+ 
++/* for secure_getenv */
++#define _GNU_SOURCE
+ #include <assert.h>
+ #include <stdlib.h>
+ #include <string.h>
+@@ -141,7 +143,7 @@ char *_CONF_get_string(const CONF *conf, const char *section,
+             if (v != NULL)
+                 return (v->value);
+             if (strcmp(section, "ENV") == 0) {
+-                p = getenv(name);
++                p = secure_getenv(name);
+                 if (p != NULL)
+                     return (p);
+             }
+@@ -154,7 +156,7 @@ char *_CONF_get_string(const CONF *conf, const char *section,
+         else
+             return (NULL);
+     } else
+-        return (getenv(name));
++        return (secure_getenv(name));
+ }
+ 
+ #if 0                           /* There's no way to provide error checking
+--- openssl/crypto/conf/conf_mod.c
++++ openssl/crypto/conf/conf_mod.c
+@@ -57,6 +57,8 @@
+  *
+  */
+ 
++/* for secure_getenv */
++#define _GNU_SOURCE
+ #include <stdio.h>
+ #include <ctype.h>
+ #include <openssl/crypto.h>
+@@ -526,7 +528,7 @@ char *CONF_get1_default_config_file(void)
+     char *file;
+     int len;
+ 
+-    file = getenv("OPENSSL_CONF");
++    file = secure_getenv("OPENSSL_CONF");
+     if (file)
+         return BUF_strdup(file);
+ 
+--- openssl/crypto/cryptlib.c
++++ openssl/crypto/cryptlib.c
+@@ -114,6 +114,9 @@
+  * SUN MICROSYSTEMS, INC., and contributed to the OpenSSL project.
+  */
+ 
++/* for secure_getenv */
++#define _GNU_SOURCE
++
+ #include "cryptlib.h"
+ #include <openssl/safestack.h>
+ 
+@@ -687,7 +690,7 @@ void OPENSSL_cpuid_setup(void)
+         return;
+ 
+     trigger = 1;
+-    if ((env = getenv("OPENSSL_ia32cap"))) {
++    if ((env = secure_getenv("OPENSSL_ia32cap"))) {
+         int off = (env[0] == '~') ? 1 : 0;
+ #  if defined(_WIN32)
+         if (!sscanf(env + off, "%I64i", &vec))
+--- openssl/crypto/engine/eng_list.c
++++ openssl/crypto/engine/eng_list.c
+@@ -62,6 +62,8 @@
+  * SUN MICROSYSTEMS, INC., and contributed to the OpenSSL project.
+  */
+ 
++/* for secure_getenv */
++#define _GNU_SOURCE
+ #include "eng_int.h"
+ 
+ /*
+@@ -369,10 +371,11 @@ ENGINE *ENGINE_by_id(const char *id)
+      */
+     if (strcmp(id, "dynamic")) {
+ # ifdef OPENSSL_SYS_VMS
+-        if ((load_dir = getenv("OPENSSL_ENGINES")) == 0)
++        if (OPENSSL_issetugid()
++            || (load_dir = getenv("OPENSSL_ENGINES")) == 0)
+             load_dir = "SSLROOT:[ENGINES]";
+ # else
+-        if ((load_dir = getenv("OPENSSL_ENGINES")) == 0)
++        if ((load_dir = secure_getenv("OPENSSL_ENGINES")) == 0)
+             load_dir = ENGINESDIR;
+ # endif
+         iterator = ENGINE_by_id("dynamic");
+--- openssl/crypto/md5/md5_dgst.c
++++ openssl/crypto/md5/md5_dgst.c
+@@ -56,6 +56,8 @@
+  * [including the GNU Public Licence.]
+  */
+ 
++/* for secure_getenv */
++#define _GNU_SOURCE
+ #include <stdio.h>
+ #include "md5_locl.h"
+ #include <openssl/opensslv.h>
+--- openssl/crypto/o_init.c
++++ openssl/crypto/o_init.c
+@@ -53,6 +53,8 @@
+  *
+  */
+ 
++/* for secure_getenv */
++#define _GNU_SOURCE
+ #include <e_os.h>
+ #include <openssl/err.h>
+ #ifdef OPENSSL_FIPS
+--- openssl/crypto/ppccap.c
++++ openssl/crypto/ppccap.c
+@@ -1,3 +1,6 @@
++/* for secure_getenv */
++#define _GNU_SOURCE
++
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+@@ -104,7 +107,7 @@ void OPENSSL_cpuid_setup(void)
+     sigdelset(&all_masked, SIGBUS);
+     sigdelset(&all_masked, SIGSEGV);
+ 
+-    if ((e = getenv("OPENSSL_ppccap"))) {
++    if ((e = secure_getenv("OPENSSL_ppccap"))) {
+         OPENSSL_ppccap_P = strtoul(e, NULL, 0);
+         return;
+     }
+--- openssl/crypto/rand/randfile.c
++++ openssl/crypto/rand/randfile.c
+@@ -56,6 +56,9 @@
+  * [including the GNU Public Licence.]
+  */
+ 
++/* for secure_getenv */
++#define _GNU_SOURCE
++
+ #include <errno.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+@@ -327,14 +330,12 @@ const char *RAND_file_name(char *buf, size_t size)
+     struct stat sb;
+ #endif
+ 
+-    if (OPENSSL_issetugid() == 0)
+-        s = getenv("RANDFILE");
++    s = secure_getenv("RANDFILE");
+     if (s != NULL && *s && strlen(s) + 1 < size) {
+         if (BUF_strlcpy(buf, s, size) >= size)
+             return NULL;
+     } else {
+-        if (OPENSSL_issetugid() == 0)
+-            s = getenv("HOME");
++        s = secure_getenv("HOME");
+ #ifdef DEFAULT_HOME
+         if (s == NULL) {
+             s = DEFAULT_HOME;
+--- openssl/crypto/x509/by_dir.c
++++ openssl/crypto/x509/by_dir.c
+@@ -56,6 +56,8 @@
+  * [including the GNU Public Licence.]
+  */
+ 
++/* for secure_getenv */
++#define _GNU_SOURCE
+ #include <stdio.h>
+ #include <time.h>
+ #include <errno.h>
+@@ -128,7 +130,7 @@ static int dir_ctrl(X509_LOOKUP *ctx, int cmd, const char *argp, long argl,
+     switch (cmd) {
+     case X509_L_ADD_DIR:
+         if (argl == X509_FILETYPE_DEFAULT) {
+-            dir = (char *)getenv(X509_get_default_cert_dir_env());
++            dir = (char *)secure_getenv(X509_get_default_cert_dir_env());
+             if (dir)
+                 ret = add_cert_dir(ld, dir, X509_FILETYPE_PEM);
+             else
+--- openssl/crypto/x509/by_file.c
++++ openssl/crypto/x509/by_file.c
+@@ -56,6 +56,8 @@
+  * [including the GNU Public Licence.]
+  */
+ 
++/* for secure_getenv */
++#define _GNU_SOURCE
+ #include <stdio.h>
+ #include <time.h>
+ #include <errno.h>
+@@ -97,7 +99,7 @@ static int by_file_ctrl(X509_LOOKUP *ctx, int cmd, const char *argp,
+     switch (cmd) {
+     case X509_L_FILE_LOAD:
+         if (argl == X509_FILETYPE_DEFAULT) {
+-            file = (char *)getenv(X509_get_default_cert_file_env());
++            file = (char *)secure_getenv(X509_get_default_cert_file_env());
+             if (file)
+                 ok = (X509_load_cert_crl_file(ctx, file,
+                                               X509_FILETYPE_PEM) != 0);
+--- openssl/crypto/x509/x509_vfy.c
++++ openssl/crypto/x509/x509_vfy.c
+@@ -56,6 +56,8 @@
+  * [including the GNU Public Licence.]
+  */
+ 
++/* for secure_getenv */
++#define _GNU_SOURCE
+ #include <stdio.h>
+ #include <time.h>
+ #include <errno.h>
+@@ -594,7 +596,7 @@ static int check_chain_extensions(X509_STORE_CTX *ctx)
+          * A hack to keep people who don't want to modify their software
+          * happy
+          */
+-        if (getenv("OPENSSL_ALLOW_PROXY_CERTS"))
++        if (secure_getenv("OPENSSL_ALLOW_PROXY_CERTS"))
+             allow_proxy_certs = 1;
+         purpose = ctx->param->purpose;
+     }
+--- openssl/engines/ccgost/gost_ctl.c
++++ openssl/engines/ccgost/gost_ctl.c
+@@ -6,6 +6,8 @@
+  *        Implementation of control commands for GOST engine          *
+  *            OpenSSL 0.9.9 libraries required                        *
+  **********************************************************************/
++/* for secure_getenv */
++#define _GNU_SOURCE
+ #include <stdlib.h>
+ #include <string.h>
+ #include <openssl/crypto.h>
+@@ -64,7 +66,7 @@ const char *get_gost_engine_param(int param)
+     if (gost_params[param] != NULL) {
+         return gost_params[param];
+     }
+-    tmp = getenv(gost_envnames[param]);
++    tmp = secure_getenv(gost_envnames[param]);
+     if (tmp) {
+         if (gost_params[param])
+             OPENSSL_free(gost_params[param]);
+@@ -79,7 +81,7 @@ int gost_set_default_param(int param, const char *value)
+     const char *tmp;
+     if (param < 0 || param > GOST_PARAM_MAX)
+         return 0;
+-    tmp = getenv(gost_envnames[param]);
++    tmp = secure_getenv(gost_envnames[param]);
+     /*
+      * if there is value in the environment, use it, else -passed string *
+      */

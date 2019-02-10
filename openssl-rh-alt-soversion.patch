@@ -1,0 +1,62 @@
+--- openssl/Configure
++++ openssl/Configure
+@@ -1665,7 +1665,7 @@ while (<IN>)
+ 	if ($shared_extension ne "" && $shared_extension =~ /^\.s([ol])\.[^\.]*$/)
+ 		{
+ 		my $sotmp = $1;
+-		s/^SHARED_LIBS_LINK_EXTS=.*/SHARED_LIBS_LINK_EXTS=.s$sotmp/;
++		s/^SHARED_LIBS_LINK_EXTS=.*/SHARED_LIBS_LINK_EXTS=.s$sotmp.@SHLIB_SOVERSION@ .s$sotmp/;
+ 		}
+ 	elsif ($shared_extension ne "" && $shared_extension =~ /^\.[^\.]*\.dylib$/)
+ 		{
+@@ -1674,7 +1674,7 @@ while (<IN>)
+ 	elsif ($shared_extension ne "" && $shared_extension =~ /^\.s([ol])\.[^\.]*\.[^\.]*$/)
+ 		{
+ 		my $sotmp = $1;
+-		s/^SHARED_LIBS_LINK_EXTS=.*/SHARED_LIBS_LINK_EXTS=.s$sotmp.\$(SHLIB_MAJOR) .s$sotmp/;
++		s/^SHARED_LIBS_LINK_EXTS=.*/SHARED_LIBS_LINK_EXTS=.s$sotmp.@SHLIB_SOVERSION@ .s$sotmp/;
+ 		}
+ 	elsif ($shared_extension ne "" && $shared_extension =~ /^\.[^\.]*\.[^\.]*\.dylib$/)
+ 		{
+--- openssl/Makefile.org
++++ openssl/Makefile.org
+@@ -336,7 +336,7 @@ link-shared:
+ 			LIBNAME=$$i LIBVERSION=$(SHLIB_MAJOR).$(SHLIB_MINOR) \
+ 			LIBCOMPATVERSIONS=";$(SHLIB_VERSION_HISTORY)" \
+ 			symlink.$(SHLIB_TARGET); \
+-		libs="$$libs -l$$i"; \
++		libs="lib$$i.so.$(SHLIB_MAJOR).$(SHLIB_MINOR) $$libs"; \
+ 	done
+ 
+ build-shared: do_$(SHLIB_TARGET) link-shared
+@@ -344,14 +344,14 @@ build-shared: do_$(SHLIB_TARGET) link-shared
+ do_$(SHLIB_TARGET):
+ 	@ set -e; libs='-L. $(SHLIBDEPS)'; for i in $(SHLIBDIRS); do \
+ 		if [ "$$i" = "ssl" -a -n "$(LIBKRB5)" ]; then \
+-			libs="$(LIBKRB5) $$libs"; \
++			libs="$$libs $(LIBKRB5)"; \
+ 		fi; \
+ 		$(CLEARENV) && $(MAKE) -f Makefile.shared -e $(BUILDENV) \
+ 			LIBNAME=$$i LIBVERSION=$(SHLIB_MAJOR).$(SHLIB_MINOR) \
+ 			LIBCOMPATVERSIONS=";$(SHLIB_VERSION_HISTORY)" \
+ 			LIBDEPS="$$libs $(EX_LIBS)" \
+ 			link_a.$(SHLIB_TARGET); \
+-		libs="-l$$i $$libs"; \
++		libs="lib$$i.so.$(SHLIB_MAJOR).$(SHLIB_MINOR) $$libs"; \
+ 	done
+ 
+ libcrypto.pc: Makefile
+--- openssl/Makefile.shared
++++ openssl/Makefile.shared
+@@ -149,9 +149,10 @@ DETECT_GNU_LD=($(CC) -Wl,-V /dev/null 2>&1 | grep '^GNU ld' )>/dev/null
+ DO_GNU_SO=$(CALC_VERSIONS); \
+ 	SHLIB=lib$(LIBNAME).so; \
+ 	SHLIB_SUFFIX=; \
++	SHLIB_SONAME=.@SHLIB_SOVERSION@; \
+ 	ALLSYMSFLAGS='-Wl,--whole-archive'; \
+ 	NOALLSYMSFLAGS='-Wl,--no-whole-archive'; \
+-	SHAREDFLAGS="$(CFLAGS) $(SHARED_LDFLAGS) -shared -Wl,-Bsymbolic -Wl,-soname=$$SHLIB$$SHLIB_SOVER$$SHLIB_SUFFIX"
++	SHAREDFLAGS="$(CFLAGS) $(SHARED_LDFLAGS) -shared -Wl,-Bsymbolic -Wl,-soname=$$SHLIB$$SHLIB_SONAME$$SHLIB_SUFFIX"
+ 
+ DO_GNU_APP=LDFLAGS="$(CFLAGS) -Wl,-rpath,$(LIBRPATH)"
+ 
