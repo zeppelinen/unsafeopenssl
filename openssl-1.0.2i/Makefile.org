@@ -342,10 +342,10 @@ clean-shared:
 link-shared:
 	@ set -e; for i in $(SHLIBDIRS); do \
 		$(MAKE) -f $(HERE)/Makefile.shared -e $(BUILDENV) \
-			LIBNAME=$$i LIBVERSION=$(SHLIB_MAJOR).$(SHLIB_MINOR) \
+			LIBNAME=$$i LIBVERSION=$(VERSION) \
 			LIBCOMPATVERSIONS=";$(SHLIB_VERSION_HISTORY)" \
 			symlink.$(SHLIB_TARGET); \
-		libs="lib$$i.so.$(SHLIB_MAJOR).$(SHLIB_MINOR) $$libs"; \
+		libs="lib$$i.so.$(VERSION) $$libs"; \
 	done
 
 build-shared: do_$(SHLIB_TARGET) link-shared
@@ -356,11 +356,11 @@ do_$(SHLIB_TARGET):
 			libs="$$libs $(LIBKRB5)"; \
 		fi; \
 		$(CLEARENV) && $(MAKE) -f Makefile.shared -e $(BUILDENV) \
-			LIBNAME=$$i LIBVERSION=$(SHLIB_MAJOR).$(SHLIB_MINOR) \
+			LIBNAME=$$i LIBVERSION=$(VERSION) \
 			LIBCOMPATVERSIONS=";$(SHLIB_VERSION_HISTORY)" \
 			LIBDEPS="$$libs $(EX_LIBS)" \
 			link_a.$(SHLIB_TARGET); \
-		libs="lib$$i.so.$(SHLIB_MAJOR).$(SHLIB_MINOR) $$libs"; \
+		libs="lib$$i.so.$(VERSION) $$libs"; \
 	done
 
 libcrypto.pc: Makefile
