@@ -11,10 +11,10 @@ SHLIB_VERSION_NUMBER=1.0.0
 SHLIB_VERSION_HISTORY=
 SHLIB_MAJOR=1
 SHLIB_MINOR=0.0
-SHLIB_EXT=.so.$(VERSION)
+SHLIB_EXT=.so.$(SHLIB_MAJOR).$(SHLIB_MINOR)
 PLATFORM=linux-x86_64
-OPTIONS=enable-shared --prefix=/usr --libdir=lib --openssldir=/var/lib/unsafessl --enginesdir=/usr/lib/openssl-unsafe/engines --system-ciphers-file=/etc/openssl-unsafe/cipher-list.conf enable-md2 enable-rfc3779 enable-ssl2 enable-zlib enable-ssl2 enable-ssl3 enable-ssl3-method enable-weak-ssl-ciphers enable-ec_nistp_64_gcc_128 no-gmp no-jpake no-krb5 no-libunbound no-rc5 no-sctp no-ssl-trace no-store no-unit-test no-zlib-dynamic no-static-engine
-CONFIGURE_ARGS=shared --prefix=/usr --libdir=lib --openssldir=/var/lib/unsafessl --enginesdir=/usr/lib/openssl-unsafe/engines --system-ciphers-file=/etc/openssl-unsafe/cipher-list.conf enable-md2 enable-rfc3779 enable-ssl2 zlib enable-ssl2 enable-ssl3 enable-ssl3-method enable-weak-ssl-ciphers enable-ec_nistp_64_gcc_128 linux-x86_64
+OPTIONS=-Wa,--noexecstack no-ec_nistp_64_gcc_128 no-gmp no-jpake no-krb5 no-libunbound no-md2 no-rc5 no-rfc3779 no-sctp no-shared no-ssl-trace no-ssl2 no-store no-unit-test no-weak-ssl-ciphers no-zlib no-zlib-dynamic static-engine
+CONFIGURE_ARGS=linux-x86_64 -Wa,--noexecstack
 SHLIB_TARGET=linux-shared
 
 # HERE indicates where this Makefile lives.  This can be used to indicate
@@ -26,10 +26,10 @@ HERE=.
 # for, say, /usr/ and yet have everything installed to /tmp/somedir/usr/.
 # Normally it is left empty.
 INSTALL_PREFIX=
-INSTALLTOP=/usr
+INSTALLTOP=/usr/local/ssl
 
 # Do not edit this manually. Use Configure --openssldir=DIR do change this!
-OPENSSLDIR=/var/lib/unsafessl
+OPENSSLDIR=/usr/local/ssl
 
 # NO_IDEA - Define to build without the IDEA algorithm
 # NO_RC4  - Define to build without the RC4 algorithm
@@ -60,10 +60,10 @@ OPENSSLDIR=/var/lib/unsafessl
 # PKCS1_CHECK - pkcs1 tests.
 
 CC= gcc
-CFLAG= -fPIC -DOPENSSL_PIC -DZLIB -DOPENSSL_THREADS -D_REENTRANT -DDSO_DLFCN -DHAVE_DLFCN_H -m64 -DL_ENDIAN -fno-strict-aliasing -Wa,--noexecstack -Wall -DOPENSSL_IA32_SSE2 -DOPENSSL_BN_ASM_MONT -DOPENSSL_BN_ASM_MONT5 -DOPENSSL_BN_ASM_GF2m -DRC4_ASM -DSHA1_ASM -DSHA256_ASM -DSHA512_ASM -DMD5_ASM -DAES_ASM -DVPAES_ASM -DBSAES_ASM -DWHIRLPOOL_ASM -DGHASH_ASM -DECP_NISTZ256_ASM
-DEPFLAG= -DOPENSSL_NO_GMP -DOPENSSL_NO_JPAKE -DOPENSSL_NO_LIBUNBOUND -DOPENSSL_NO_RC5 -DOPENSSL_NO_SCTP -DOPENSSL_NO_SSL_TRACE -DOPENSSL_NO_STORE -DOPENSSL_NO_UNIT_TEST
+CFLAG= -DOPENSSL_THREADS -D_REENTRANT -DDSO_DLFCN -DHAVE_DLFCN_H -Wa,--noexecstack -m64 -DL_ENDIAN -O3 -Wall -DOPENSSL_IA32_SSE2 -DOPENSSL_BN_ASM_MONT -DOPENSSL_BN_ASM_MONT5 -DOPENSSL_BN_ASM_GF2m -DRC4_ASM -DSHA1_ASM -DSHA256_ASM -DSHA512_ASM -DMD5_ASM -DAES_ASM -DVPAES_ASM -DBSAES_ASM -DWHIRLPOOL_ASM -DGHASH_ASM -DECP_NISTZ256_ASM
+DEPFLAG= -DOPENSSL_NO_EC_NISTP_64_GCC_128 -DOPENSSL_NO_GMP -DOPENSSL_NO_JPAKE -DOPENSSL_NO_LIBUNBOUND -DOPENSSL_NO_MD2 -DOPENSSL_NO_RC5 -DOPENSSL_NO_RFC3779 -DOPENSSL_NO_SCTP -DOPENSSL_NO_SSL_TRACE -DOPENSSL_NO_SSL2 -DOPENSSL_NO_STORE -DOPENSSL_NO_UNIT_TEST -DOPENSSL_NO_WEAK_SSL_CIPHERS
 PEX_LIBS= 
-EX_LIBS= -ldl -lz
+EX_LIBS= -ldl
 EXE_EXT= 
 ARFLAGS= 
 AR= ar $(ARFLAGS) r
@@ -128,7 +128,7 @@ FIPSDIR=/usr/local/ssl/fips-2.0
 FIPSLIBDIR=
 
 # The location of the library which contains fipscanister.o
-# normally it will be libunsafecrypto unless fipsdso is set in which
+# normally it will be libcrypto unless fipsdso is set in which
 # case it will be libfips. If not compiling in FIPS mode at all
 # this is empty making it a useful test for a FIPS compile.
 
@@ -146,7 +146,7 @@ SHLIBDIRS= crypto ssl
 # dirs in crypto to build
 SDIRS=  \
 	objects \
-	md2 md4 md5 sha mdc2 hmac ripemd whrlpool \
+	md4 md5 sha mdc2 hmac ripemd whrlpool \
 	des aes rc2 rc4 idea bf cast camellia seed modes \
 	bn ec rsa dsa ecdsa dh ecdh dso engine \
 	buffer bio stack lhash rand err \
@@ -173,11 +173,11 @@ TOP=    .
 ONEDIRS=out tmp
 EDIRS=  times doc bugs util include certs ms shlib mt demos perl sf dep VMS
 WDIRS=  windows
-LIBS=   libunsafecrypto.a libunsafessl.a
-SHARED_CRYPTO=libunsafecrypto$(SHLIB_EXT)
-SHARED_SSL=libunsafessl$(SHLIB_EXT)
-SHARED_LIBS=$(SHARED_CRYPTO) $(SHARED_SSL)
-SHARED_LIBS_LINK_EXTS=.so.10 .so
+LIBS=   libcrypto.a libssl.a
+SHARED_CRYPTO=libcrypto$(SHLIB_EXT)
+SHARED_SSL=libssl$(SHLIB_EXT)
+SHARED_LIBS=
+SHARED_LIBS_LINK_EXTS=.so.$(SHLIB_MAJOR) .so
 SHARED_LDFLAGS=-m64
 
 GENERAL=        Makefile
@@ -277,10 +277,10 @@ sub_all: build_all
 
 build_all: build_libs build_apps build_tests build_tools
 
-build_libs: build_libunsafecrypto build_libunsafessl openssl-unsafe.pc
+build_libs: build_libcrypto build_libssl openssl.pc
 
-build_libunsafecrypto: build_crypto build_engines libunsafecrypto.pc
-build_libunsafessl: build_ssl libunsafessl.pc
+build_libcrypto: build_crypto build_engines libcrypto.pc
+build_libssl: build_ssl libssl.pc
 
 build_crypto:
 	dir=crypto; target=all; $(BUILD_ONE_CMD)
@@ -299,16 +299,16 @@ all_testapps: build_libs build_testapps
 build_testapps:
 	dir=crypto; target=testapps; $(BUILD_ONE_CMD)
 
-fips_premain_dso$(EXE_EXT): libunsafecrypto.a
+fips_premain_dso$(EXE_EXT): libcrypto.a
 	[ -z "$(FIPSCANLIB)" ] || $(CC) $(CFLAG) -Iinclude \
 		-DFINGERPRINT_PREMAIN_DSO_LOAD -o $@  \
 		$(FIPSLIBDIR)fips_premain.c $(FIPSLIBDIR)fipscanister.o \
-		libunsafecrypto.a $(EX_LIBS)
+		libcrypto.a $(EX_LIBS)
 
-libunsafecrypto$(SHLIB_EXT): libunsafecrypto.a $(FIPS_PREMAIN_DSO)
+libcrypto$(SHLIB_EXT): libcrypto.a fips_premain_dso$(EXE_EXT)
 	if [ "$(SHLIB_TARGET)" != "" ]; then \
-		if [ "$(FIPSCANLIB)" = "libunsafecrypto" ]; then \
-			FIPSLD_LIBCRYPTO=libunsafecrypto.a ; \
+		if [ "$(FIPSCANLIB)" = "libcrypto" ]; then \
+			FIPSLD_LIBCRYPTO=libcrypto.a ; \
 			FIPSLD_CC="$(CC)"; CC=$(FIPSDIR)/bin/fipsld; \
 			export CC FIPSLD_CC FIPSLD_LIBCRYPTO; \
 		fi; \
@@ -319,9 +319,9 @@ libunsafecrypto$(SHLIB_EXT): libunsafecrypto.a $(FIPS_PREMAIN_DSO)
 		exit 1; \
 	fi
 
-libunsafessl$(SHLIB_EXT): libunsafecrypto$(SHLIB_EXT) libunsafessl.a
+libssl$(SHLIB_EXT): libcrypto$(SHLIB_EXT) libssl.a
 	if [ "$(SHLIB_TARGET)" != "" ]; then \
-		$(MAKE) SHLIBDIRS=ssl SHLIBDEPS='-lunsafecrypto' build-shared; \
+		$(MAKE) SHLIBDIRS=ssl SHLIBDEPS='-lcrypto' build-shared; \
 	else \
 		echo "There's no support for shared libraries on this platform" >&2; \
 		exit 1; \
@@ -344,10 +344,10 @@ clean-shared:
 link-shared:
 	set -e; for i in $(SHLIBDIRS); do \
 		$(MAKE) -f $(HERE)/Makefile.shared -e $(BUILDENV) \
-			LIBNAME=unsafe$$i LIBVERSION=$(VERSION) \
+			LIBNAME=$$i LIBVERSION=$(SHLIB_MAJOR).$(SHLIB_MINOR) \
 			LIBCOMPATVERSIONS=";$(SHLIB_VERSION_HISTORY)" \
 			symlink.$(SHLIB_TARGET); \
-		libs="lib$$i.so.$(VERSION) $$libs"; \
+		libs="$$libs -l$$i"; \
 	done
 
 build-shared: do_$(SHLIB_TARGET) link-shared
@@ -355,55 +355,55 @@ build-shared: do_$(SHLIB_TARGET) link-shared
 do_$(SHLIB_TARGET):
 	set -e; libs='-L. $(SHLIBDEPS)'; for i in $(SHLIBDIRS); do \
 		if [ "$$i" = "ssl" -a -n "$(LIBKRB5)" ]; then \
-			libs="$$libs $(LIBKRB5)"; \
+			libs="$(LIBKRB5) $$libs"; \
 		fi; \
 		$(CLEARENV) && $(MAKE) -f Makefile.shared -e $(BUILDENV) \
-			LIBNAME=unsafe$$i LIBVERSION=$(VERSION) \
+			LIBNAME=$$i LIBVERSION=$(SHLIB_MAJOR).$(SHLIB_MINOR) \
 			LIBCOMPATVERSIONS=";$(SHLIB_VERSION_HISTORY)" \
 			LIBDEPS="$$libs $(EX_LIBS)" \
 			link_a.$(SHLIB_TARGET); \
-		libs="lib$$i.so.$(VERSION) $$libs"; \
+		libs="-l$$i $$libs"; \
 	done
 
-libunsafecrypto.pc: Makefile
+libcrypto.pc: Makefile
 	( echo 'prefix=$(INSTALLTOP)'; \
 	    echo 'exec_prefix=$${prefix}'; \
 	    echo 'libdir=$${exec_prefix}/$(LIBDIR)'; \
 	    echo 'includedir=$${prefix}/include'; \
 	    echo 'enginesdir=$${libdir}/engines'; \
 	    echo ''; \
-	    echo 'Name: OpenSSLUnsafe-libunsafecrypto'; \
+	    echo 'Name: OpenSSL-libcrypto'; \
 	    echo 'Description: OpenSSL cryptography library'; \
 	    echo 'Version: '$(VERSION); \
 	    echo 'Requires: '; \
-	    echo 'Libs: -L$${libdir} -lunsafecrypto'; \
+	    echo 'Libs: -L$${libdir} -lcrypto'; \
 	    echo 'Libs.private: $(EX_LIBS)'; \
-	    echo 'Cflags: -I$${includedir} $(KRB5_INCLUDES)' ) > libunsafecrypto.pc
+	    echo 'Cflags: -I$${includedir} $(KRB5_INCLUDES)' ) > libcrypto.pc
 
-libunsafessl.pc: Makefile
+libssl.pc: Makefile
 	( echo 'prefix=$(INSTALLTOP)'; \
 	    echo 'exec_prefix=$${prefix}'; \
 	    echo 'libdir=$${exec_prefix}/$(LIBDIR)'; \
 	    echo 'includedir=$${prefix}/include'; \
 	    echo ''; \
-	    echo 'Name: OpenSSLUnsafe-libunsafessl'; \
+	    echo 'Name: OpenSSL-libssl'; \
 	    echo 'Description: Secure Sockets Layer and cryptography libraries'; \
 	    echo 'Version: '$(VERSION); \
-	    echo 'Requires.private: libunsafecrypto'; \
-	    echo 'Libs: -L$${libdir} -lunsafessl'; \
+	    echo 'Requires.private: libcrypto'; \
+	    echo 'Libs: -L$${libdir} -lssl'; \
 	    echo 'Libs.private: $(EX_LIBS)'; \
-	    echo 'Cflags: -I$${includedir} $(KRB5_INCLUDES)' ) > libunsafessl.pc
+	    echo 'Cflags: -I$${includedir} $(KRB5_INCLUDES)' ) > libssl.pc
 
-openssl-unsafe.pc: Makefile
+openssl.pc: Makefile
 	( echo 'prefix=$(INSTALLTOP)'; \
 	    echo 'exec_prefix=$${prefix}'; \
 	    echo 'libdir=$${exec_prefix}/$(LIBDIR)'; \
 	    echo 'includedir=$${prefix}/include'; \
 	    echo ''; \
-	    echo 'Name: OpenSSLUnsafe'; \
+	    echo 'Name: OpenSSL'; \
 	    echo 'Description: Secure Sockets Layer and cryptography libraries and tools'; \
 	    echo 'Version: '$(VERSION); \
-	    echo 'Requires: libunsafessl libunsafecrypto' ) > openssl-unsafe.pc
+	    echo 'Requires: libssl libcrypto' ) > openssl.pc
 
 Makefile: Makefile.org Configure config
 	echo "Makefile is older than Makefile.org, Configure or config."
@@ -417,7 +417,7 @@ clean:	libclean
 	rm -f shlib/*.o *.o core a.out fluff rehash.time testlog make.log cctest cctest.c
 	set -e; target=clean; $(RECURSIVE_BUILD_CMD)
 	rm -f $(LIBS)
-	rm -f openssl-unsafe.pc libunsafessl.pc libunsafecrypto.pc
+	rm -f openssl.pc libssl.pc libcrypto.pc
 	rm -f speed.* .pure
 	rm -f $(TARFILE)
 	set -e; for i in $(ONEDIRS) ;\
@@ -601,12 +601,12 @@ install_sw:
 			sed -e '1,/^$$/d' doc/openssl-shared.txt; \
 		fi; \
 	fi
-	cp libunsafecrypto.pc $(INSTALL_PREFIX)$(INSTALLTOP)/$(LIBDIR)/pkgconfig
-	chmod 644 $(INSTALL_PREFIX)$(INSTALLTOP)/$(LIBDIR)/pkgconfig/libunsafecrypto.pc
-	cp libunsafessl.pc $(INSTALL_PREFIX)$(INSTALLTOP)/$(LIBDIR)/pkgconfig
-	chmod 644 $(INSTALL_PREFIX)$(INSTALLTOP)/$(LIBDIR)/pkgconfig/libunsafessl.pc
-	cp openssl-unsafe.pc $(INSTALL_PREFIX)$(INSTALLTOP)/$(LIBDIR)/pkgconfig
-	chmod 644 $(INSTALL_PREFIX)$(INSTALLTOP)/$(LIBDIR)/pkgconfig/openssl-unsafe.pc
+	cp libcrypto.pc $(INSTALL_PREFIX)$(INSTALLTOP)/$(LIBDIR)/pkgconfig
+	chmod 644 $(INSTALL_PREFIX)$(INSTALLTOP)/$(LIBDIR)/pkgconfig/libcrypto.pc
+	cp libssl.pc $(INSTALL_PREFIX)$(INSTALLTOP)/$(LIBDIR)/pkgconfig
+	chmod 644 $(INSTALL_PREFIX)$(INSTALLTOP)/$(LIBDIR)/pkgconfig/libssl.pc
+	cp openssl.pc $(INSTALL_PREFIX)$(INSTALLTOP)/$(LIBDIR)/pkgconfig
+	chmod 644 $(INSTALL_PREFIX)$(INSTALLTOP)/$(LIBDIR)/pkgconfig/openssl.pc
 
 install_html_docs:
 	here="`pwd`"; \
@@ -650,7 +650,7 @@ install_docs:
 		sec=`$(PERL) util/extract-section.pl 1 < $$i`; \
 		echo "installing man$$sec/$$fn.$${sec}$(MANSUFFIX)"; \
 		(cd `$(PERL) util/dirname.pl $$i`; \
-		sh -c "TZ=UTC $$pod2man \
+		sh -c "$$pod2man \
 			--section=$$sec --center=OpenSSL \
 			--release=$(VERSION) `basename $$i`") \
 			>  $(INSTALL_PREFIX)$(MANDIR)/man$$sec/$$fn.$${sec}$(MANSUFFIX); \
@@ -667,7 +667,7 @@ install_docs:
 		sec=`$(PERL) util/extract-section.pl 3 < $$i`; \
 		echo "installing man$$sec/$$fn.$${sec}$(MANSUFFIX)"; \
 		(cd `$(PERL) util/dirname.pl $$i`; \
-		sh -c "TZ=UTC $$pod2man \
+		sh -c "$$pod2man \
 			--section=$$sec --center=OpenSSL \
 			--release=$(VERSION) `basename $$i`") \
 			>  $(INSTALL_PREFIX)$(MANDIR)/man$$sec/$$fn.$${sec}$(MANSUFFIX); \
