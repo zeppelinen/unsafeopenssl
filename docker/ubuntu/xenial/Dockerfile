@@ -8,12 +8,12 @@
 
 FROM ubuntu:xenial as stage1
 # prebuild stage
-RUN apt-get update && apt-get -y install make cmake qtbase5-dev g++ libgnutls-dev libssl-dev
+RUN apt-get update && apt-get -y install make gcc zlib1g-dev zlib1g bzip2 perl
 # add files
-ADD . /qsslcaudit
-WORKDIR /qsslcaudit
+ADD . /build
+WORKDIR /build
 # build stage
-RUN tools/install.sh
+RUN ./build.sh
 # postbuild stage
 RUN echo post build
 

@@ -9,19 +9,18 @@
 FROM debian:wheezy as stage1
 # prebuild stage
 RUN echo 'deb http://http.debian.net/debian wheezy-backports main' > /etc/apt/sources.list.d/wheezy-backports.list
-RUN apt-get update && apt-get -y install make cmake qt5-default g++ libgnutls-dev libssl-dev
+RUN apt-get update && apt-get -y install make gcc zlib1g zlib1g-dev bzip2 perl
 # add files
-ADD . /qsslcaudit
-WORKDIR /qsslcaudit
+ADD . /build
+WORKDIR /build
 # build stage
-RUN tools/install.sh
+RUN find . -type f -print0 | xargs -0 sed -i -e "s/secure_getenv/getenv/g"
+RUN ./build.sh
 # postbuild stage
 RUN echo post build
 
 FROM debian:wheezy
-
 WORKDIR /root/
 
-COPY --from=stage1 /usr/local/bin/qsslcaudit /usr/local/bin/
 
 CMD ["/bin/true"]  

@@ -9,13 +9,13 @@
 FROM fedora:29 as stage1
 # prebuild stage
 RUN dnf -y update && \
-dnf -y install make cmake qt5-qtbase-devel gnutls-devel openssl openssl-libs openssl-devel gcc gcc-c++
+dnf -y install make gcc perl zlib-devel zlib bzip2
 
 # add files
-ADD . /qsslcaudit
-WORKDIR /qsslcaudit
+ADD . /build
+WORKDIR /build
 # build stage
-RUN tools/install.sh
+RUN ./build.sh
 # postbuild stage
 RUN echo post build
 

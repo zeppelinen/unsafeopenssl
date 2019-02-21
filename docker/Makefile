@@ -1,4 +1,4 @@
-REGISTRY?=qsslcaudit
+REGISTRY?=unsafeopenssl
 VERSION=0.1
 DOCKERFILES=$(shell find * -type f -name Dockerfile)
 IMAGES=$(subst /,\-,$(subst /Dockerfile,,$(DOCKERFILES)))

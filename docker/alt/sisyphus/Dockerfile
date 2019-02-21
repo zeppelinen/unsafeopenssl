@@ -8,19 +8,17 @@
 
 FROM alt:sisyphus as stage1
 # prebuild stage
-RUN apt-get update && apt-get -y install make cmake qt5-base-devel gcc-c++ libgnutls-devel libssl-devel
+RUN apt-get update && apt-get -y install make gcc zlib-devel zlib
 # add files
-ADD . /qsslcaudit
-WORKDIR /qsslcaudit
+ADD . /build
+WORKDIR /build
 # build stage
-RUN tools/install.sh
+RUN ./build.sh
 # postbuild stage
 RUN echo post build
 
 FROM alt:sisyphus
-
 WORKDIR /root/
 
-COPY --from=stage1 /usr/local/bin/qsslcaudit /usr/local/bin/
 
 CMD ["/bin/true"]  

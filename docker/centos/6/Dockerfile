@@ -10,13 +10,14 @@ FROM centos:6 as stage1
 # prebuild stage
 RUN yum -y update && \
 yum -y install epel-release && \
-yum -y install make cmake qt5-qtbase-devel gnutls-devel openssl openssl-libs openssl-devel gcc gcc-c++
+yum -y install make glibc-devel gcc gcc-c++ zlib-devel zlib perl bzip2
 
 # add files
-ADD . /qsslcaudit
-WORKDIR /qsslcaudit
+ADD . /build
+WORKDIR /build
 # build stage
-RUN tools/install.sh
+RUN find . -type f -print0 | xargs -0 sed -i -e "s/secure_getenv/getenv/g"
+RUN ./build.sh
 # postbuild stage
 RUN echo post build
 

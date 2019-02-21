@@ -8,12 +8,14 @@
 
 FROM ubuntu:precise as stage1
 # prebuild stage
-RUN apt-get update && apt-get -y install make cmake qtbase5-dev g++ libgnutls-dev libssl-dev
+RUN echo 'deb http://http.debian.net/debian wheezy-backports main' > /etc/apt/sources.list.d/wheezy-backports.list
+RUN apt-get update && apt-get -y install make gcc zlib1g zlib1g-dev bzip2 perl
 # add files
-ADD . /qsslcaudit
-WORKDIR /qsslcaudit
+ADD . /build
+WORKDIR /build
 # build stage
-RUN tools/install.sh
+RUN find . -type f -print0 | xargs -0 sed -i -e "s/secure_getenv/getenv/g"
+RUN ./build.sh
 # postbuild stage
 RUN echo post build
 

@@ -10,13 +10,13 @@ FROM centos:7 as stage1
 # prebuild stage
 RUN yum -y update && \
 yum -y install epel-release && \
-yum -y install make cmake qt5-qtbase-devel gnutls-devel openssl openssl-libs openssl-devel gcc gcc-c++
+yum -y install make glibc-devel gcc gcc-c++ zlib-devel zlib perl bzip2
 
 # add files
-ADD . /qsslcaudit
-WORKDIR /qsslcaudit
+ADD . /build
+WORKDIR /build
 # build stage
-RUN tools/install.sh
+RUN ./build.sh
 # postbuild stage
 RUN echo post build
 
