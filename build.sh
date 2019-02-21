@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 set -e
-export BUILDROOT=/buildroot
+export BUILDROOT=/build/root
 export OPENSSLDIR=/var/lib/unsafessl
-mkdir ${BUILDROOT}
+mkdir -p ${BUILDROOT}
 
 cd openssl-1.0.2i
 
-arch=$(uname -i)
-if [[ $arch == x86_64* ]]; then
+arch=$(arch)
+if [[ $arch == x86_64 ]]; then
     ADD_ARGS="linux-x86_64"
 elif [[ $arch == i*86 ]]; then
     ADD_ARGS="$ADD_ARGS linux_elf 386"
@@ -96,7 +96,9 @@ mv $BUILDROOT/usr/lib/engines $BUILDROOT/usr/lib/openssl-unsafe/
 # Relocate openssl.cnf from %/etc/openssl/ to %_sysconfdir/openssl/.
 mkdir -p $BUILDROOT/etc/openssl-unsafe
 mv $BUILDROOT/$OPENSSLDIR/openssl.cnf $BUILDROOT/etc/openssl-unsafe/
-ln -s -r $BUILDROOT/etc/openssl-unsafe/openssl.cnf $BUILDROOT/$OPENSSLDIR
+cd  $BUILDROOT/etc/openssl-unsafe 
+ln -s openssl.cnf ../../$OPENSSLDIR
+cd -
 
 #ln -s -r $BUILDROOT/usr/share/ca-certificates/ca-bundle.crt \
 #        $BUILDROOT/etc/openssl/cert.pem
@@ -129,4 +131,4 @@ find $BUILDROOT/usr/include/openssl-unsafe -name '*.h' -exec sed -i -e 's/<opens
 
 # Create default cipher-list.conf from SSL_DEFAULT_CIPHER_LIST
 sed -n -r 's,^#.*SSL_DEFAULT_CIPHER_LIST[[:space:]]+"([^"]+)",\1,p' \
-        ssl/ssl.h > $BUILDROOT%/etc//openssl-unsafe/cipher-list.conf
+        ssl/ssl.h > $BUILDROOT/etc//openssl-unsafe/cipher-list.conf

@@ -1,0 +1,165 @@
+---
+# common parameters
+
+# root directory for docker structure
+base_dir: "{{ playbook_dir }}/../"
+# prefix for docker images
+package_prefix: unsafessl
+
+# build macros
+
+fail_build: 'echo "I will fail"; exit 1'
+default_build_command: RUN ./build.sh
+default_install_commands: 
+
+default_centos_commands:
+  pre_build_commands:
+    - |
+      RUN yum -y update && \
+      yum -y install epel-release && \
+      yum -y install make glibc-devel gcc gcc-c++ zlib-devel zlib perl bzip2
+  build_commands:
+    - "{{ default_build_command }}"
+  post_build_commands:
+    - RUN echo post build
+  install_dep_commands:
+
+default_fedora_commands:
+  pre_build_commands:
+    - |
+      RUN dnf -y update && \
+      dnf -y install make gcc perl zlib-devel zlib bzip2
+  build_commands:
+    - "{{ default_build_command }}"
+  post_build_commands:
+    - RUN echo post build
+  install_dep_commands:
+
+default_debian_commands:
+  pre_build_commands:
+    - RUN apt-get update && apt-get -y install make gcc zlib1g zlib1g-dev bzip2 perl perl-base
+  build_commands:
+    - "{{ default_build_command }}"
+  post_build_commands:
+    - RUN echo post build
+
+default_ubuntu_commands:
+  pre_build_commands:
+    - RUN apt-get update && apt-get -y install make gcc zlib1g-dev zlib1g bzip2 perl
+  build_commands:
+    - "{{ default_build_command }}"
+  post_build_commands:
+    - RUN echo post build
+
+default_alt_commands:
+  pre_build_commands:
+    - RUN apt-get update && apt-get -y install make gcc zlib-devel zlib 
+  build_commands:
+    - "{{ default_build_command }}"
+  post_build_commands:
+    - RUN echo post build
+
+distributions:
+  - name: ubuntu-trusty
+platforms:
+  - name: centos
+    base_repo: centos
+    versions:
+      # - name: 5
+      #   commands: "{{ default_centos_commands }}"
+      - name: 6
+        commands:
+         pre_build_commands:
+           - |
+             RUN yum -y update && \
+             yum -y install epel-release && \
+             yum -y install make glibc-devel gcc gcc-c++ zlib-devel zlib perl bzip2
+         build_commands:
+           - RUN find . -type f -print0 | xargs -0 sed -i -e "s/secure_getenv/getenv/g"
+           - "{{ default_build_command }}"
+         post_build_commands:
+           - RUN echo post build
+         install_dep_commands:
+      - name: 7
+        commands: "{{ default_centos_commands }}"
+  - name: fedora
+    base_repo: fedora
+    versions:
+      - name: 28
+        commands: "{{ default_fedora_commands }}"
+      - name: 29
+        commands: "{{ default_fedora_commands }}"
+      - name: 30
+        commands: "{{ default_fedora_commands }}"
+  - name: ubuntu
+    base_repo: ubuntu
+    versions:
+      # - name: lucid
+      #   commands: "{{ default_ubuntu_commands }}"
+      - name: precise
+        commands:
+          pre_build_commands:
+            - RUN echo 'deb http://http.debian.net/debian wheezy-backports main' > /etc/apt/sources.list.d/wheezy-backports.list
+            - RUN apt-get update && apt-get -y install make gcc zlib1g zlib1g-dev bzip2 perl
+          build_commands:
+            - RUN find . -type f -print0 | xargs -0 sed -i -e "s/secure_getenv/getenv/g"
+            - "{{ default_build_command }}"
+          post_build_commands:
+            - RUN echo post build
+      - name: trusty
+        commands: "{{ default_ubuntu_commands }}"
+      - name: xenial
+        commands: "{{ default_ubuntu_commands }}"
+      - name: bionic
+        commands:
+            pre_build_commands:
+              - RUN apt-get update && apt-get -y install make gcc zlib1g zlib1g-dev bzip2 perl
+            build_commands:
+              - "{{ default_build_command }}"
+            post_build_commands:
+              - RUN echo post build
+  - name: debian
+    base_repo: debian
+    versions:
+      # - name: squeeze
+      #   commands: "{{ default_debian_commands }}"
+      - name: wheezy
+        commands:
+          pre_build_commands:
+            - RUN echo 'deb http://http.debian.net/debian wheezy-backports main' > /etc/apt/sources.list.d/wheezy-backports.list
+            - RUN apt-get update && apt-get -y install make gcc zlib1g zlib1g-dev bzip2 perl
+          build_commands:
+            - RUN find . -type f -print0 | xargs -0 sed -i -e "s/secure_getenv/getenv/g"
+            - "{{ default_build_command }}"
+          post_build_commands:
+            - RUN echo post build
+      - name: stretch
+        commands: "{{ default_debian_commands }}"
+  - name: mint
+    base_repo: vcatechnology/linux-mint
+    versions:
+      - name: 18
+        commands: "{{ default_ubuntu_commands }}"
+      - name: 17
+        commands: "{{ default_ubuntu_commands }}"
+  - name: kalilinux
+    base_repo: kalilinux/kali-linux-docker
+    versions:
+      - name: latest
+        commands: "{{ default_debian_commands }}"
+  - name: alt
+    base_repo: alt
+    versions:
+      - name: sisyphus
+        commands: "{{ default_alt_commands }}"
+      # - name: p8
+      #   commands: "{{ default_alt_commands }}"
+  # - name: opensuse
+  #   base_repo: opensuse
+  #   versions:
+  #     - name: tumbleweed
+  #       commands: "{{ default_centos_commands }}"
+  #     - name: leap
+  #       commands: "{{ default_centos_commands }}"
+  #     - name: harlequin
+  #       commands: "{{ default_centos_commands }}"
