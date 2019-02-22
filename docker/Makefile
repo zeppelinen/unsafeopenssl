@@ -23,4 +23,5 @@ debug:
 	mv /tmp/$(REGISTRY)_$@_$(VERSION)/* ../packages/
 	rm -rf /tmp/$(REGISTRY)_$@_$(VERSION)
 	docker rm $(REGISTRY)_$@_$(VERSION)-$(TIMESTAMP)
+	docker rmi $(REGISTRY)/$@:$(VERSION)
 	echo Done
