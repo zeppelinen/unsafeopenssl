@@ -24,13 +24,4 @@ WORKDIR /build
 {{ command }}
 {% endfor %}
 
-FROM {{ distribution.base_repo }}:{{ release.name }}
-WORKDIR /root/
-{% if release.commands.install_commands is defined %}
-{% for command in release.commands.install_commands %}
-{{ command }}
-{% endfor %}
-{% endif %}
-
-
 CMD ["/bin/true"]  
