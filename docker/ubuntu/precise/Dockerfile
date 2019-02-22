@@ -36,7 +36,7 @@ RUN apt-get update && apt-get -y install rpm vim
 COPY --from=stage1 /build /build
 RUN mkdir /pkg && \
 DISTRO=$(cat /build/distro) && \
-DISTRO_VERSION=$(cat /build/version) && \
+DISTRO_VERSION=$(cat /build/distro_version) && \
 cd /pkg && \
 fpm -t deb \
 -n unsafeopenssl \
