@@ -52,7 +52,7 @@ default_deb_package:
   - |
       RUN mkdir /pkg && \
       DISTRO=$(cat /build/distro) && \
-      DISTRO_VERSION=$(cat /build/version) && \
+      DISTRO_VERSION=$(cat /build/distro_version) && \
       cd /pkg && \
       fpm -t deb \
       -n unsafeopenssl \
