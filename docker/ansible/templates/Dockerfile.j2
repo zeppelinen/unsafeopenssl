@@ -8,17 +8,22 @@
 #
 
 FROM {{ distribution.base_repo }}:{{ release.name }} as stage1
+
 # prebuild stage
 {% for command in release.commands.pre_build_commands %}
 {{ command }}
 {% endfor %}
+
 # add files
 ADD . /build
 WORKDIR /build
+
 # build stage
 {% for command in release.commands.build_commands %}
 {{ command }}
 {% endfor %}
+
+
 # postbuild stage
 {% for command in release.commands.post_build_commands %}
 {{ command }}
