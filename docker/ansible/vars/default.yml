@@ -4,13 +4,53 @@
 # root directory for docker structure
 base_dir: "{{ playbook_dir }}/../"
 # prefix for docker images
-package_prefix: unsafessl
+package_prefix: unsafeopenssl-pkg
 
 # build macros
 
 fail_build: 'echo "I will fail"; exit 1'
 default_build_command: RUN ./build.sh
 default_install_commands: 
+
+default_rpm_package:
+  - FROM cdrx/fpm-ubuntu:18.04 as stage-package
+  - RUN apt-get update && apt-get -y install rpm vim 
+  - COPY --from=stage1 /build /build
+  - |
+      RUN VERSION_ID=$(grep -h ^VERSION_ID= /etc/*release | awk -F= {'print $2'} | sed 's/"//g') && \
+      ID=$(grep -h ^ID= /etc/*release | awk -F= {'print $2'} | sed 's/"//g') && \
+      mkdir /pkg && \
+      cd /pkg && \
+      fpm -t rpm \
+      -n unsafeopenssl \
+      -v 0.1 \
+      -m "<an@zeppelinen.com>" \
+      --provides "unsafeopenssl" \
+      --description "Unsafe version of OpenSSL 1.0.2i.\nDependency for qsslcaudit tool." \
+      --url "https://github.com" \
+      --iteration "${ID}.${VERSION_ID}" \
+      -C /build/root \
+      -s dir ./
+
+default_deb_package:
+  - FROM cdrx/fpm-ubuntu:18.04 as stage-package
+  - RUN apt-get update && apt-get -y install rpm vim 
+  - COPY --from=stage1 /build /build
+  - |
+      RUN VERSION_ID=$(grep -h ^VERSION_ID= /etc/*release | awk -F= {'print $2'} | sed 's/"//g') && \
+      ID=$(grep -h ^ID= /etc/*release | awk -F= {'print $2'} | sed 's/"//g') && \
+      mkdir /pkg && \
+      cd /pkg && \
+      fpm -t deb \
+      -n unsafeopenssl \
+      -v 0.1 \
+      -m "<an@zeppelinen.com>" \
+      --provides "unsafeopenssl" \
+      --description "Unsafe version of OpenSSL 1.0.2i.\nDependency for qsslcaudit tool." \
+      --url "https://github.com" \
+      --iteration "${ID}.${VERSION_ID}" \
+      -C /build/root \
+      -s dir ./
 
 default_centos_commands:
   pre_build_commands:
@@ -20,8 +60,8 @@ default_centos_commands:
       yum -y install make glibc-devel gcc gcc-c++ zlib-devel zlib perl bzip2
   build_commands:
     - "{{ default_build_command }}"
-  post_build_commands:
-    - RUN echo post build
+  post_build_commands: "{{ default_rpm_package }}"
+
   install_dep_commands:
 
 default_fedora_commands:
@@ -31,8 +71,7 @@ default_fedora_commands:
       dnf -y install make gcc perl zlib-devel zlib bzip2
   build_commands:
     - "{{ default_build_command }}"
-  post_build_commands:
-    - RUN echo post build
+  post_build_commands: "{{ default_rpm_package }}"
   install_dep_commands:
 
 default_debian_commands:
@@ -40,27 +79,22 @@ default_debian_commands:
     - RUN apt-get update && apt-get -y install make gcc zlib1g zlib1g-dev bzip2 perl perl-base
   build_commands:
     - "{{ default_build_command }}"
-  post_build_commands:
-    - RUN echo post build
+  post_build_commands: "{{ default_deb_package }}"
 
 default_ubuntu_commands:
   pre_build_commands:
     - RUN apt-get update && apt-get -y install make gcc zlib1g-dev zlib1g bzip2 perl
   build_commands:
     - "{{ default_build_command }}"
-  post_build_commands:
-    - RUN echo post build
+  post_build_commands: "{{ default_deb_package }}"
 
 default_alt_commands:
   pre_build_commands:
     - RUN apt-get update && apt-get -y install make gcc zlib-devel zlib 
   build_commands:
     - "{{ default_build_command }}"
-  post_build_commands:
-    - RUN echo post build
+  post_build_commands: "{{ default_rpm_package }}"
 
-distributions:
-  - name: ubuntu-trusty
 platforms:
   - name: centos
     base_repo: centos
@@ -77,8 +111,7 @@ platforms:
          build_commands:
            - RUN find . -type f -print0 | xargs -0 sed -i -e "s/secure_getenv/getenv/g"
            - "{{ default_build_command }}"
-         post_build_commands:
-           - RUN echo post build
+         post_build_commands: "{{ default_rpm_package }}"
          install_dep_commands:
       - name: 7
         commands: "{{ default_centos_commands }}"
@@ -104,8 +137,7 @@ platforms:
           build_commands:
             - RUN find . -type f -print0 | xargs -0 sed -i -e "s/secure_getenv/getenv/g"
             - "{{ default_build_command }}"
-          post_build_commands:
-            - RUN echo post build
+          post_build_commands: "{{ default_deb_package }}"
       - name: trusty
         commands: "{{ default_ubuntu_commands }}"
       - name: xenial
@@ -116,8 +148,7 @@ platforms:
               - RUN apt-get update && apt-get -y install make gcc zlib1g zlib1g-dev bzip2 perl
             build_commands:
               - "{{ default_build_command }}"
-            post_build_commands:
-              - RUN echo post build
+            post_build_commands: "{{ default_deb_package }}"
   - name: debian
     base_repo: debian
     versions:
@@ -131,8 +162,7 @@ platforms:
           build_commands:
             - RUN find . -type f -print0 | xargs -0 sed -i -e "s/secure_getenv/getenv/g"
             - "{{ default_build_command }}"
-          post_build_commands:
-            - RUN echo post build
+          post_build_commands: "{{ default_deb_package }}"
       - name: stretch
         commands: "{{ default_debian_commands }}"
   - name: mint
