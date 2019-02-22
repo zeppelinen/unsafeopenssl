@@ -7,22 +7,36 @@
 #
 
 FROM fedora:29 as stage1
+
 # prebuild stage
 RUN dnf -y update && \
-dnf -y install make gcc perl zlib-devel zlib bzip2
+dnf -y install make gcc perl zlib-devel zlib bzip2 redhat-lsb
+
 
 # add files
 ADD . /build
 WORKDIR /build
+
 # build stage
-RUN ./build.sh
+RUN ./build.sh && \
+echo Store distro for packager && \
+lsb_release -i | awk {'print $3'} > /build/distro && \
+echo Store distro version for packager && \
+lsb_release -r | awk {'print $2'} | sed -e 's/n\/a/unstable/g' > /build/distro_version && \
+echo /build && \
+ls -al /build && \
+echo build root contents && \
+find /build/root
+
+
+
 # postbuild stage
 FROM cdrx/fpm-ubuntu:18.04 as stage-package
 RUN apt-get update && apt-get -y install rpm vim
 COPY --from=stage1 /build /build
-RUN VERSION_ID=$(grep -h ^VERSION_ID= /etc/*release | awk -F= {'print $2'} | sed 's/"//g') && \
-ID=$(grep -h ^ID= /etc/*release | awk -F= {'print $2'} | sed 's/"//g') && \
-mkdir /pkg && \
+RUN mkdir /pkg && \
+DISTRO=$(cat /build/distro) && \
+DISTRO_VERSION=$(cat /build/distro_version) && \
 cd /pkg && \
 fpm -t rpm \
 -n unsafeopenssl \
@@ -31,7 +45,8 @@ fpm -t rpm \
 --provides "unsafeopenssl" \
 --description "Unsafe version of OpenSSL 1.0.2i.\nDependency for qsslcaudit tool." \
 --url "https://github.com" \
---iteration "${ID}.${VERSION_ID}" \
+--iteration "${DISTRO}.${DISTRO_VERSION}" \
+-a "x86_64" \
 -C /build/root \
 -s dir ./
 
