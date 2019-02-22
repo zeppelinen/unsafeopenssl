@@ -8,8 +8,20 @@ package_prefix: unsafeopenssl-pkg
 
 # build macros
 
-fail_build: 'echo "I will fail"; exit 1'
-default_build_command: RUN ./build.sh
+fail_build: 'echo "I failed :("; exit 1'
+
+default_build_command: | 
+  RUN ./build.sh && \
+  echo Store distro for packager && \
+  lsb_release -i | awk {'print $3'} > /build/distro && \
+  echo Store distro version for packager && \
+  lsb_release -r | awk {'print $2'} | sed -e 's/n\/a/unstable/g' > /build/distro_version && \
+  echo /build && \
+  ls -al /build && \
+  echo build root contents && \
+  find /build/root
+
+
 default_install_commands: 
 
 default_rpm_package:
@@ -17,9 +29,9 @@ default_rpm_package:
   - RUN apt-get update && apt-get -y install rpm vim 
   - COPY --from=stage1 /build /build
   - |
-      RUN VERSION_ID=$(grep -h ^VERSION_ID= /etc/*release | awk -F= {'print $2'} | sed 's/"//g') && \
-      ID=$(grep -h ^ID= /etc/*release | awk -F= {'print $2'} | sed 's/"//g') && \
-      mkdir /pkg && \
+      RUN mkdir /pkg && \
+      DISTRO=$(cat /build/distro) && \
+      DISTRO_VERSION=$(cat /build/distro_version) && \
       cd /pkg && \
       fpm -t rpm \
       -n unsafeopenssl \
@@ -28,7 +40,8 @@ default_rpm_package:
       --provides "unsafeopenssl" \
       --description "Unsafe version of OpenSSL 1.0.2i.\nDependency for qsslcaudit tool." \
       --url "https://github.com" \
-      --iteration "${ID}.${VERSION_ID}" \
+      --iteration "${DISTRO}.${DISTRO_VERSION}" \
+      -a "x86_64" \
       -C /build/root \
       -s dir ./
 
@@ -37,9 +50,9 @@ default_deb_package:
   - RUN apt-get update && apt-get -y install rpm vim 
   - COPY --from=stage1 /build /build
   - |
-      RUN VERSION_ID=$(grep -h ^VERSION_ID= /etc/*release | awk -F= {'print $2'} | sed 's/"//g') && \
-      ID=$(grep -h ^ID= /etc/*release | awk -F= {'print $2'} | sed 's/"//g') && \
-      mkdir /pkg && \
+      RUN mkdir /pkg && \
+      DISTRO=$(cat /build/distro) && \
+      DISTRO_VERSION=$(cat /build/version) && \
       cd /pkg && \
       fpm -t deb \
       -n unsafeopenssl \
@@ -48,7 +61,8 @@ default_deb_package:
       --provides "unsafeopenssl" \
       --description "Unsafe version of OpenSSL 1.0.2i.\nDependency for qsslcaudit tool." \
       --url "https://github.com" \
-      --iteration "${ID}.${VERSION_ID}" \
+      --iteration "${DISTRO}.${DISTRO_VERSION}" \
+      -a "x86_64" \
       -C /build/root \
       -s dir ./
 
@@ -57,7 +71,7 @@ default_centos_commands:
     - |
       RUN yum -y update && \
       yum -y install epel-release && \
-      yum -y install make glibc-devel gcc gcc-c++ zlib-devel zlib perl bzip2
+      yum -y install make glibc-devel gcc gcc-c++ zlib-devel zlib perl bzip2 redhat-lsb
   build_commands:
     - "{{ default_build_command }}"
   post_build_commands: "{{ default_rpm_package }}"
@@ -68,7 +82,7 @@ default_fedora_commands:
   pre_build_commands:
     - |
       RUN dnf -y update && \
-      dnf -y install make gcc perl zlib-devel zlib bzip2
+      dnf -y install make gcc perl zlib-devel zlib bzip2 redhat-lsb
   build_commands:
     - "{{ default_build_command }}"
   post_build_commands: "{{ default_rpm_package }}"
@@ -76,21 +90,21 @@ default_fedora_commands:
 
 default_debian_commands:
   pre_build_commands:
-    - RUN apt-get update && apt-get -y install make gcc zlib1g zlib1g-dev bzip2 perl perl-base
+    - RUN apt-get update && apt-get -y install make gcc zlib1g zlib1g-dev bzip2 perl perl-base lsb-release
   build_commands:
     - "{{ default_build_command }}"
   post_build_commands: "{{ default_deb_package }}"
 
 default_ubuntu_commands:
   pre_build_commands:
-    - RUN apt-get update && apt-get -y install make gcc zlib1g-dev zlib1g bzip2 perl
+    - RUN apt-get update && apt-get -y install make gcc zlib1g-dev zlib1g bzip2 perl lsb-release
   build_commands:
     - "{{ default_build_command }}"
   post_build_commands: "{{ default_deb_package }}"
 
 default_alt_commands:
   pre_build_commands:
-    - RUN apt-get update && apt-get -y install make gcc zlib-devel zlib 
+    - RUN apt-get update && apt-get -y install make gcc zlib-devel zlib lsb-release
   build_commands:
     - "{{ default_build_command }}"
   post_build_commands: "{{ default_rpm_package }}"
@@ -107,7 +121,7 @@ platforms:
            - |
              RUN yum -y update && \
              yum -y install epel-release && \
-             yum -y install make glibc-devel gcc gcc-c++ zlib-devel zlib perl bzip2
+             yum -y install make glibc-devel gcc gcc-c++ zlib-devel zlib perl bzip2 redhat-lsb
          build_commands:
            - RUN find . -type f -print0 | xargs -0 sed -i -e "s/secure_getenv/getenv/g"
            - "{{ default_build_command }}"
@@ -133,7 +147,7 @@ platforms:
         commands:
           pre_build_commands:
             - RUN echo 'deb http://http.debian.net/debian wheezy-backports main' > /etc/apt/sources.list.d/wheezy-backports.list
-            - RUN apt-get update && apt-get -y install make gcc zlib1g zlib1g-dev bzip2 perl
+            - RUN apt-get update && apt-get -y install make gcc zlib1g zlib1g-dev bzip2 perl lsb-release
           build_commands:
             - RUN find . -type f -print0 | xargs -0 sed -i -e "s/secure_getenv/getenv/g"
             - "{{ default_build_command }}"
@@ -145,7 +159,7 @@ platforms:
       - name: bionic
         commands:
             pre_build_commands:
-              - RUN apt-get update && apt-get -y install make gcc zlib1g zlib1g-dev bzip2 perl
+              - RUN apt-get update && apt-get -y install make gcc zlib1g zlib1g-dev bzip2 perl lsb-release
             build_commands:
               - "{{ default_build_command }}"
             post_build_commands: "{{ default_deb_package }}"
@@ -158,7 +172,7 @@ platforms:
         commands:
           pre_build_commands:
             - RUN echo 'deb http://http.debian.net/debian wheezy-backports main' > /etc/apt/sources.list.d/wheezy-backports.list
-            - RUN apt-get update && apt-get -y install make gcc zlib1g zlib1g-dev bzip2 perl
+            - RUN apt-get update && apt-get -y install make gcc zlib1g zlib1g-dev bzip2 perl lsb-release
           build_commands:
             - RUN find . -type f -print0 | xargs -0 sed -i -e "s/secure_getenv/getenv/g"
             - "{{ default_build_command }}"
